@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebGIS dengan GeoJSON</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; }
+        .popup-img { max-width: 300px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="data.js"></script> <!-- File hasil konversi -->
+    
+    <script>
+        // Inisialisasi peta
+        const map = L.map('map').setView([-5.289, 105.423], 17);
+        
+        // Basemap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Proses GeoJSON
+        L.geoJSON(geoJSONData, {
+            pointToLayer: function(feature, latlng) {
+                return L.marker(latlng).bindPopup(`
+                    <b>ID ${feature.properties.ID}</b><br>
+                    <img class="popup-img" 
+                         src="${feature.properties.foto_path}" 
+                         onerror="this.src='https://placehold.co/300?text=Image+Not+Found'"
+                         alt="${feature.properties.foto_name}"><br>
+                    Lat: ${feature.properties.lat}<br>
+                    Lon: ${feature.properties.lon}
+                `);
+            }
+        }).addTo(map);
+    </script>
+</body>
+</html>
