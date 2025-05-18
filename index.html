@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebGIS dengan GeoJSON</title>
+    <title>Geotagging Kotabaru</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         #map { height: 100vh; }
@@ -15,18 +15,23 @@
     <script src="titik aldi 1.js"></script> <!-- File hasil konversi -->
     
     <script>
-        // Inisialisasi peta
-        const map = L.map('map').setView([-5.289, 105.423], 17);
+        // Inisialisasi peta dengan zoom level lebih tinggi (19)
+        const map = L.map('map').setView([-5.289, 105.423], 19);
         
-        // Basemap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+        // Google Satellite Basemap (menggunakan salah satu provider yang tersedia)
+        L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: '© Google Satellite',
+            maxZoom: 24  // Set zoom maksimum lebih tinggi
         }).addTo(map);
 
         // Proses GeoJSON
         L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
-                return L.marker(latlng).bindPopup(`
+                // Buat marker dengan ikon default
+                return L.marker(latlng, {
+                    // Optional: sesuaikan opacity jika perlu
+                    opacity: 0.9
+                }).bindPopup(`
                     <b>ID ${feature.properties.ID}</b><br>
                     <img class="popup-img" 
                          src="${feature.properties.foto_path}" 
