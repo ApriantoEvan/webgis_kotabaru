@@ -5,30 +5,62 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         #map { height: 100vh; }
-        .popup-img { 
-            max-width: 100%;
-            height: auto;
+        
+        /* Improved popup styling */
+        .popup-img {
+            max-width: 200px;
+            max-height: 150px;
             display: block;
-            margin: 0 auto;
+            margin: 5px auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
+        
         .popup-content {
             text-align: center;
-            padding: 10px;
+            padding: 8px;
+            font-size: 13px;
         }
+        
+        .popup-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
         .popup-coords {
-            font-size: 12px;
-            margin: 5px 0;
-            color: #555;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
         }
-        .leaflet-popup-content-wrapper {
-            border-radius: 8px;
+        
+        /* Smaller marker icons */
+        .leaflet-marker-icon {
+            width: 20px !important;
+            height: 20px !important;
+            margin-left: -10px !important;
+            margin-top: -10px !important;
         }
+        
+        /* Adjust zoom controls */
+        .leaflet-control-zoom {
+            margin-right: 10px !important;
+            margin-top: 10px !important;
+        }
+        
+        .leaflet-control-zoom-in,
+        .leaflet-control-zoom-out {
+            width: 26px !important;
+            height: 26px !important;
+            line-height: 26px !important;
+            font-size: 18px !important;
+        }
+        
+        /* Popup close button */
         .leaflet-popup-close-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            font-size: 18px;
-            color: #555;
+            right: 3px !important;
+            top: 3px !important;
+            font-size: 16px !important;
+            color: #555 !important;
         }
     </style>
 </head>
@@ -39,8 +71,8 @@
     <script src="titik aldi 1.js"></script>
     
     <script>
-        // Inisialisasi peta dengan zoom level lebih tinggi
-        const map = L.map('map').setView([-5.289, 105.423], 19);
+        // Initialize map with higher zoom level
+        const map = L.map('map').setView([-5.289, 105.423], 20);
         
         // Google Satellite Basemap
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -48,62 +80,53 @@
             maxZoom: 24
         }).addTo(map);
 
-        // Fungsi untuk mengatur ukuran popup berdasarkan zoom level
-        function getPopupSize(zoom) {
-            if (zoom >= 20) return {width: 350, height: 'auto'};
-            if (zoom >= 18) return {width: 300, height: 'auto'};
-            return {width: 250, height: 'auto'};
-        }
+        // Create a smaller marker icon
+        const smallIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+            popupAnchor: [0, -10]
+        });
 
-        // Proses GeoJSON dengan popup yang responsive
+        // Process GeoJSON with responsive popups
         L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
-                const marker = L.marker(latlng, {
+                return L.marker(latlng, {
+                    icon: smallIcon,
                     opacity: 0.9
-                });
-                
-                marker.on('click', function() {
-                    const zoom = map.getZoom();
-                    const size = getPopupSize(zoom);
-                    
-                    const popupContent = `
-                        <div class="popup-content">
-                            <b>ID ${feature.properties.ID}</b>
-                            <div class="popup-coords">
-                                Lat: ${feature.properties.lat}<br>
-                                Lon: ${feature.properties.lon}
-                            </div>
-                            <img class="popup-img" 
-                                 src="${feature.properties.foto_path}" 
-                                 onerror="this.src='https://placehold.co/300?text=Image+Not+Found'"
-                                 alt="${feature.properties.foto_name}">
+                }).bindPopup(`
+                    <div class="popup-content">
+                        <div class="popup-header">ID ${feature.properties.ID}</div>
+                        <div class="popup-coords">
+                            Lat: ${feature.properties.lat}<br>
+                            Lon: ${feature.properties.lon}
                         </div>
-                    `;
-                    
-                    marker.bindPopup(popupContent, {
-                        maxWidth: size.width,
-                        maxHeight: size.height,
-                        className: 'custom-popup'
-                    }).openPopup();
+                        <img class="popup-img" 
+                             src="${feature.properties.foto_path}" 
+                             onerror="this.src='https://placehold.co/200x150?text=Image+Not+Found'"
+                             alt="${feature.properties.foto_name}">
+                    </div>
+                `, {
+                    maxWidth: 250,
+                    minWidth: 200,
+                    className: 'custom-popup'
                 });
-                
-                return marker;
             }
         }).addTo(map);
 
-        // Update popup size when zoom changes
+        // Adjust controls when zoom changes
         map.on('zoomend', function() {
-            map.eachLayer(function(layer) {
-                if (layer.getPopup) {
-                    const popup = layer.getPopup();
-                    if (popup) {
-                        const zoom = map.getZoom();
-                        const size = getPopupSize(zoom);
-                        popup.setContent(popup.getContent()); // Refresh content
-                        popup.update();
-                    }
-                }
-            });
+            const currentZoom = map.getZoom();
+            const zoomControls = document.querySelector('.leaflet-control-zoom');
+            
+            // Scale zoom controls based on zoom level
+            if (currentZoom >= 19) {
+                zoomControls.style.transform = 'scale(0.9)';
+            } else if (currentZoom >= 17) {
+                zoomControls.style.transform = 'scale(1.0)';
+            } else {
+                zoomControls.style.transform = 'scale(1.1)';
+            }
         });
     </script>
 </body>
