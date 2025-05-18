@@ -79,104 +79,58 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="titik aldi 1.js"></script>
     
-    <script>
-        // Initialize map
-        const map = L.map('map').setView([-5.289300, 105.422925], 19);
-        
-        // Google Satellite Basemap
-        L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            attribution: '© Google Satellite',
-            maxZoom: 24
-        }).addTo(map);
+   <script>
+    // Initialize map
+    const map = L.map('map').setView([-5.289300, 105.422925], 19);
+    
+    // Google Satellite Basemap
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: '© Google Satellite',
+        maxZoom: 24
+    }).addTo(map);
 
-        // Create optimized plant marker icon
-        const plantIcon = L.divIcon({
-            className: 'plant-marker',
-            iconSize: [14, 14],
-            iconAnchor: [7, 7],
-            popupAnchor: [0, -7]
-        });
+    // Create optimized plant marker icon (with darker color)
+    const plantIcon = L.divIcon({
+        className: 'plant-marker',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -7]
+    });
 
-        // Smart popup positioning function
-        function smartPopup(latlng, content) {
-            const marker = L.marker(latlng, { icon: plantIcon, opacity: 0.9 });
+    // Process GeoJSON with markers
+    const geoJsonLayer = L.geoJSON(geoJSONData, {
+        pointToLayer: function(feature, latlng) {
+            const marker = L.marker(latlng, { 
+                icon: plantIcon,
+                opacity: 1 // Always fully visible
+            });
             
-            marker.on('click', function() {
-                const popup = L.popup({
-                    maxWidth: 150,
-                    minWidth: 120,
-                    className: 'smart-popup',
-                    autoPanPaddingTopLeft: [20, 20],
-                    autoPanPaddingBottomRight: [20, 20]
-                })
-                .setLatLng(latlng)
-                .setContent(content)
-                .openOn(map);
-                
-                // Adjust position if near edge
-                const containerPoint = map.latLngToContainerPoint(latlng);
-                const popupWidth = 150;
-                const popupHeight = 120;
-                const offsetX = 10;
-                const offsetY = -10;
-                
-                if (containerPoint.x < popupWidth/2) {
-                    popup.options.offset = [popupWidth/2 - containerPoint.x + offsetX, offsetY];
-                } 
-                else if (containerPoint.x > map.getSize().x - popupWidth/2) {
-                    popup.options.offset = [-(containerPoint.x - (map.getSize().x - popupWidth/2)) + offsetX, offsetY];
-                }
-                
-                if (containerPoint.y < popupHeight) {
-                    popup.options.offset = [popup.options.offset[0], popupHeight - containerPoint.y + offsetY];
-                }
-                
-                popup.update();
+            marker.bindPopup(`
+                <div class="popup-content">
+                    <div class="popup-header">ID ${feature.properties.ID}</div>
+                    <div class="popup-coords">
+                        ${feature.properties.lat}<br>
+                        ${feature.properties.lon}
+                    </div>
+                    <img class="popup-img" 
+                         src="${feature.properties.foto_path}" 
+                         onerror="this.src='https://placehold.co/120x80?text=Image'"
+                         alt="${feature.properties.foto_name}">
+                </div>
+            `, {
+                maxWidth: 150,
+                minWidth: 120,
+                className: 'smart-popup',
+                autoPanPaddingTopLeft: [20, 20],
+                autoPanPaddingBottomRight: [20, 20]
             });
             
             return marker;
         }
+    }).addTo(map);
 
-        // Process GeoJSON with smart popups
-        L.geoJSON(geoJSONData, {
-            pointToLayer: function(feature, latlng) {
-                const content = `
-                    <div class="popup-content">
-                        <div class="popup-header">ID ${feature.properties.ID}</div>
-                        <div class="popup-coords">
-                            ${feature.properties.lat}<br>
-                            ${feature.properties.lon}
-                        </div>
-                        <img class="popup-img" 
-                             src="${feature.properties.foto_path}" 
-                             onerror="this.src='https://placehold.co/120x80?text=Image'"
-                             alt="${feature.properties.foto_name}">
-                    </div>
-                `;
-                
-                return smartPopup(latlng, content);
-            }
-        }).addTo(map);
-
-        // Adjust marker visibility on zoom
-        map.on('zoomend', function() {
-            const currentZoom = map.getZoom();
-            const markers = document.querySelectorAll('.plant-marker');
-            
-            // Adjust marker visibility based on zoom level
-            markers.forEach(marker => {
-                if (currentZoom >= 18) {
-                    marker.style.opacity = '0.9';
-                    marker.style.transform = 'scale(1)';
-                } else if (currentZoom >= 16) {
-                    marker.style.opacity = '0.7';
-                    marker.style.transform = 'scale(0.7)';
-                } else {
-                    marker.style.opacity = '0.5';
-                    marker.style.transform = 'scale(0.5)';
-                }
-            });
-        });
-    </script>
+    // Remove problematic zoomend event listener
+    // Marker akan tetap terlihat di semua zoom level
+</script>
 </body>
 </html>
