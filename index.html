@@ -5,43 +5,106 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         #map { height: 100vh; }
-        .popup-img { max-width: 300px; }
+        .popup-img { 
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        .popup-content {
+            text-align: center;
+            padding: 10px;
+        }
+        .popup-coords {
+            font-size: 12px;
+            margin: 5px 0;
+            color: #555;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        .leaflet-popup-close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 18px;
+            color: #555;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="titik aldi 1.js"></script> <!-- File hasil konversi -->
+    <script src="titik aldi 1.js"></script>
     
     <script>
-        // Inisialisasi peta dengan zoom level lebih tinggi (19)
+        // Inisialisasi peta dengan zoom level lebih tinggi
         const map = L.map('map').setView([-5.289, 105.423], 19);
         
-        // Google Satellite Basemap (menggunakan salah satu provider yang tersedia)
+        // Google Satellite Basemap
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             attribution: '© Google Satellite',
-            maxZoom: 24  // Set zoom maksimum lebih tinggi
+            maxZoom: 24
         }).addTo(map);
 
-        // Proses GeoJSON
+        // Fungsi untuk mengatur ukuran popup berdasarkan zoom level
+        function getPopupSize(zoom) {
+            if (zoom >= 20) return {width: 350, height: 'auto'};
+            if (zoom >= 18) return {width: 300, height: 'auto'};
+            return {width: 250, height: 'auto'};
+        }
+
+        // Proses GeoJSON dengan popup yang responsive
         L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
-                // Buat marker dengan ikon default
-                return L.marker(latlng, {
-                    // Optional: sesuaikan opacity jika perlu
+                const marker = L.marker(latlng, {
                     opacity: 0.9
-                }).bindPopup(`
-                    <b>ID ${feature.properties.ID}</b><br>
-                    <img class="popup-img" 
-                         src="${feature.properties.foto_path}" 
-                         onerror="this.src='https://placehold.co/300?text=Image+Not+Found'"
-                         alt="${feature.properties.foto_name}"><br>
-                    Lat: ${feature.properties.lat}<br>
-                    Lon: ${feature.properties.lon}
-                `);
+                });
+                
+                marker.on('click', function() {
+                    const zoom = map.getZoom();
+                    const size = getPopupSize(zoom);
+                    
+                    const popupContent = `
+                        <div class="popup-content">
+                            <b>ID ${feature.properties.ID}</b>
+                            <div class="popup-coords">
+                                Lat: ${feature.properties.lat}<br>
+                                Lon: ${feature.properties.lon}
+                            </div>
+                            <img class="popup-img" 
+                                 src="${feature.properties.foto_path}" 
+                                 onerror="this.src='https://placehold.co/300?text=Image+Not+Found'"
+                                 alt="${feature.properties.foto_name}">
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent, {
+                        maxWidth: size.width,
+                        maxHeight: size.height,
+                        className: 'custom-popup'
+                    }).openPopup();
+                });
+                
+                return marker;
             }
         }).addTo(map);
+
+        // Update popup size when zoom changes
+        map.on('zoomend', function() {
+            map.eachLayer(function(layer) {
+                if (layer.getPopup) {
+                    const popup = layer.getPopup();
+                    if (popup) {
+                        const zoom = map.getZoom();
+                        const size = getPopupSize(zoom);
+                        popup.setContent(popup.getContent()); // Refresh content
+                        popup.update();
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
