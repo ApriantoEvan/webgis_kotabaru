@@ -136,10 +136,11 @@
 
                 // Paksa peta memusatkan ke marker saat diklik
                 marker.on('click', function(e) {
+                    map.once('moveend', function() {
+                        marker.openPopup();
+                    });
                     map.panTo(e.latlng, { animate: true });
-                    setTimeout(() => marker.openPopup(), 250);
                 });
-
                 return marker;
             }
         }).addTo(map);
