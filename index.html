@@ -1,110 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Geotagging Kotabaru</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Map Viewer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <style>
-        #map { height: 100vh; width: 100vw; }
-
-        .leaflet-popup {
-            will-change: transform;
+        html, body, #map {
+            height: 100%;
+            margin: 0;
         }
 
-        .leaflet-popup-content {
-            max-height: 120px;
-            overflow-y: auto;
-            text-align: center;
-        }
-
-        .popup-img {
-            max-width: 120px;
-            max-height: 80px;
-            display: block;
-            margin: 2px auto;
-            border: 1px solid #ddd;
-            border-radius: 2px;
-            transition: transform 0.2s;
-        }
-
-        .popup-img:hover {
-            transform: scale(1.05);
+        .smart-popup {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
         }
 
         .popup-content {
             text-align: center;
-            padding: 4px;
-            font-size: 11px;
-            line-height: 1.2;
+            width: 200px;
         }
 
         .popup-header {
             font-weight: bold;
-            margin-bottom: 2px;
-            font-size: 10px;
+            margin-bottom: 5px;
+        }
+
+        .popup-img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            margin-top: 5px;
         }
 
         .popup-coords {
-            font-size: 9px;
-            color: #666;
-            margin-bottom: 3px;
-        }
-
-        .plant-marker {
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2315631a"><path d="M12 2C8 2 4 6 4 10c0 4 4 8 8 8s8-4 8-8c0-4-4-8-8-8zm0 14c-3.3 0-6-2.7-6-6s2.7-6 6-6 6 2.7 6 6-2.7 6-6 6z"/><path d="M12 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>');
-            background-size: contain;
-            width: 14px !important;
-            height: 14px !important;
-            margin-left: -7px !important;
-            margin-top: -7px !important;
-            filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));
-        }
-
-        .leaflet-control-zoom {
-            margin-right: 5px !important;
-            margin-top: 5px !important;
-        }
-
-        .leaflet-control-zoom-in,
-        .leaflet-control-zoom-out {
-            width: 20px !important;
-            height: 20px !important;
-            line-height: 20px !important;
-            font-size: 14px !important;
-        }
-
-        .leaflet-popup-close-button {
-            right: 1px !important;
-            top: 1px !important;
-            font-size: 12px !important;
-            color: #333 !important;
+            color: #333;
+            font-size: 11px;
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="Semua titik.js"></script>
-
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Inisialisasi peta
-        const map = L.map('map').setView([-5.289308969, 105.423135], 19);
+        // Ganti ini dengan data geoJSON kamu
+        const geoJSONData = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "ID": "001",
+                        "lat": "-5.2893",
+                        "lon": "105.4231",
+                        "foto_path": "https://placehold.co/200x150?text=Image+001",
+                        "foto_name": "Image001.jpg"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [105.4231, -5.2893]
+                    }
+                }
+                // Tambahkan fitur lainnya di sini...
+            ]
+        };
 
-        // Tambahkan basemap satelit Google
-        L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            attribution: '© Google Satellite',
-            maxZoom: 24
-        }).addTo(map);
+        const map = L.map('map');
 
-        // Definisikan ikon marker tanaman
         const plantIcon = L.divIcon({
-            className: 'plant-marker',
-            iconSize: [14, 14],
-            iconAnchor: [7, 7],
-            popupAnchor: [0, -7]
+            className: 'custom-div-icon',
+            html: "<div style='background: transparent; border: 2px solid green; border-radius: 50%; width: 10px; height: 10px;'></div>",
+            iconSize: [10, 10],
+            iconAnchor: [5, 5]
         });
 
-        // Tambahkan marker dari data GeoJSON
         const geoJsonLayer = L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
                 const marker = L.marker(latlng, {
@@ -121,7 +92,7 @@
                         </div>
                         <img class="popup-img" 
                              src="${feature.properties.foto_path}" 
-                             onerror="this.src='https://placehold.co/120x80?text=Image'" 
+                             onerror="this.src='https://placehold.co/200x150?text=No+Image'" 
                              alt="${feature.properties.foto_name}">
                     </div>
                 `;
@@ -129,18 +100,25 @@
                 marker.bindPopup(popupContent, {
                     autoPan: true,
                     autoPanPadding: [50, 50],
-                    maxWidth: 150,
-                    minWidth: 120,
+                    maxWidth: 250,
+                    minWidth: 200,
                     className: 'smart-popup'
                 });
 
-                // Hanya buka popup langsung — biarkan Leaflet yang mengatur pan otomatis
                 marker.on('click', function() {
                     marker.openPopup();
                 });
 
                 return marker;
             }
+        }).addTo(map);
+
+        // Auto-center the map to fit all markers
+        map.fitBounds(geoJsonLayer.getBounds());
+
+        // Optional: add a tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
     </script>
 </body>
