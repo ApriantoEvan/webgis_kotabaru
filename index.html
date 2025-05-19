@@ -4,38 +4,49 @@
     <title>Geotagging Kotabaru</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        html, body, #map {
-            height: 100%;
-            margin: 0;
-            padding: 0;
+        #map { height: 100vh; width: 100vw; }
+
+        .leaflet-popup {
+            will-change: transform;
+        }
+
+        .leaflet-popup-content {
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: center;
         }
 
         .popup-img {
-            max-width: 200px;
-            max-height: 150px;
+            max-width: 120px;
+            max-height: 80px;
             display: block;
-            margin: 4px auto;
+            margin: 2px auto;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 2px;
+            transition: transform 0.2s;
+        }
+
+        .popup-img:hover {
+            transform: scale(1.05);
         }
 
         .popup-content {
             text-align: center;
-            padding: 6px;
-            font-size: 12px;
+            padding: 4px;
+            font-size: 11px;
             line-height: 1.2;
         }
 
         .popup-header {
             font-weight: bold;
-            margin-bottom: 4px;
-            font-size: 11px;
+            margin-bottom: 2px;
+            font-size: 10px;
         }
 
         .popup-coords {
-            font-size: 10px;
+            font-size: 9px;
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .plant-marker {
@@ -48,17 +59,24 @@
             filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));
         }
 
-        .leaflet-popup-close-button {
-            font-size: 14px !important;
-            top: 2px !important;
-            right: 2px !important;
+        .leaflet-control-zoom {
+            margin-right: 5px !important;
+            margin-top: 5px !important;
         }
 
         .leaflet-control-zoom-in,
         .leaflet-control-zoom-out {
-            width: 22px;
-            height: 22px;
-            font-size: 16px;
+            width: 20px !important;
+            height: 20px !important;
+            line-height: 20px !important;
+            font-size: 14px !important;
+        }
+
+        .leaflet-popup-close-button {
+            right: 1px !important;
+            top: 1px !important;
+            font-size: 12px !important;
+            color: #333 !important;
         }
     </style>
 </head>
@@ -69,14 +87,16 @@
     <script src="Semua titik.js"></script>
 
     <script>
-        const map = L.map('map');
+        // Inisialisasi peta
+        const map = L.map('map').setView([-5.289308969, 105.423135], 19);
 
-        // Add Google Satellite
+        // Tambahkan basemap satelit Google
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             attribution: '© Google Satellite',
             maxZoom: 24
         }).addTo(map);
 
+        // Definisikan ikon marker tanaman
         const plantIcon = L.divIcon({
             className: 'plant-marker',
             iconSize: [14, 14],
@@ -84,11 +104,15 @@
             popupAnchor: [0, -7]
         });
 
-        let geoJsonLayer = L.geoJSON(geoJSONData, {
+        // Tambahkan marker dari data GeoJSON
+        const geoJsonLayer = L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
-                const marker = L.marker(latlng, { icon: plantIcon });
+                const marker = L.marker(latlng, {
+                    icon: plantIcon,
+                    opacity: 1
+                });
 
-                marker.bindPopup(`
+                const popupContent = `
                     <div class="popup-content">
                         <div class="popup-header">ID ${feature.properties.ID}</div>
                         <div class="popup-coords">
@@ -97,24 +121,27 @@
                         </div>
                         <img class="popup-img" 
                              src="${feature.properties.foto_path}" 
-                             onerror="this.src='https://placehold.co/200x150?text=Image'"
+                             onerror="this.src='https://placehold.co/120x80?text=Image'" 
                              alt="${feature.properties.foto_name}">
                     </div>
-                `, {
-                    maxWidth: 220,
-                    minWidth: 180,
+                `;
+
+                marker.bindPopup(popupContent, {
                     autoPan: true,
-                    keepInView: true
+                    autoPanPadding: [50, 50],
+                    maxWidth: 150,
+                    minWidth: 120,
+                    className: 'smart-popup'
+                });
+
+                // Hanya buka popup langsung — biarkan Leaflet yang mengatur pan otomatis
+                marker.on('click', function() {
+                    marker.openPopup();
                 });
 
                 return marker;
             }
         }).addTo(map);
-
-        // Auto center map to marker bounds
-        map.fitBounds(geoJsonLayer.getBounds(), {
-            padding: [50, 50]
-        });
     </script>
 </body>
 </html>
