@@ -90,13 +90,13 @@
         // Inisialisasi peta
         const map = L.map('map').setView([-5.289308969, 105.423135], 19);
 
-        // Google Satellite Basemap
+        // Tambahkan basemap satelit Google
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             attribution: '© Google Satellite',
             maxZoom: 24
         }).addTo(map);
 
-        // Marker ikon
+        // Definisikan ikon marker tanaman
         const plantIcon = L.divIcon({
             className: 'plant-marker',
             iconSize: [14, 14],
@@ -104,7 +104,7 @@
             popupAnchor: [0, -7]
         });
 
-        // Tambahkan GeoJSON marker ke peta
+        // Tambahkan marker dari data GeoJSON
         const geoJsonLayer = L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
                 const marker = L.marker(latlng, {
@@ -127,20 +127,18 @@
                 `;
 
                 marker.bindPopup(popupContent, {
-                    maxWidth: 150,
-                    minWidth: 120,
                     autoPan: true,
                     autoPanPadding: [50, 50],
+                    maxWidth: 150,
+                    minWidth: 120,
                     className: 'smart-popup'
                 });
 
-                // Paksa peta memusatkan ke marker saat diklik
-                marker.on('click', function(e) {
-                    map.once('moveend', function() {
-                        marker.openPopup();
-                    });
-                    map.panTo(e.latlng, { animate: true });
+                // Hanya buka popup langsung — biarkan Leaflet yang mengatur pan otomatis
+                marker.on('click', function() {
+                    marker.openPopup();
                 });
+
                 return marker;
             }
         }).addTo(map);
