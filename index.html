@@ -88,7 +88,7 @@
 
     <script>
         // Inisialisasi peta
-        const map = L.map('map').setView([-5.289894, 105.422790], 18);
+        const map = L.map('map').setView([-5.289308969, 105.423135], 18);
 
         // Tambahkan basemap satelit Google
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -112,7 +112,7 @@
                     opacity: 1
                 });
 
-                const popupContent = 
+                const popupContent = `
                     <div class="popup-content">
                         <div class="popup-header">ID ${feature.properties.ID}</div>
                         <div class="popup-coords">
@@ -124,7 +124,7 @@
                              onerror="this.src='https://placehold.co/120x80?text=Image'" 
                              alt="${feature.properties.foto_name}">
                     </div>
-                ;
+                `;
 
                 marker.bindPopup(popupContent, {
                     autoPan: true,
