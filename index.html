@@ -2,13 +2,12 @@
 <html>
 <head>
     <title>Geotagging Kotabaru</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         #map { height: 100vh; width: 100vw; }
-
-        .leaflet-popup {
-            will-change: transform;
-        }
 
         .leaflet-popup-content {
             max-height: 120px;
@@ -58,26 +57,6 @@
             margin-top: -7px !important;
             filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));
         }
-
-        .leaflet-control-zoom {
-            margin-right: 5px !important;
-            margin-top: 5px !important;
-        }
-
-        .leaflet-control-zoom-in,
-        .leaflet-control-zoom-out {
-            width: 20px !important;
-            height: 20px !important;
-            line-height: 20px !important;
-            font-size: 14px !important;
-        }
-
-        .leaflet-popup-close-button {
-            right: 1px !important;
-            top: 1px !important;
-            font-size: 12px !important;
-            color: #333 !important;
-        }
     </style>
 </head>
 <body>
@@ -87,16 +66,16 @@
     <script src="Semua titik.js"></script>
 
     <script>
-        // Inisialisasi peta
-        const map = L.map('map').setView([-5.289308969, 105.423135], 19);
+        // Inisialisasi peta tanpa setView awal
+        const map = L.map('map');
 
-        // Tambahkan basemap satelit Google
+        // Tambahkan layer satelit Google
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
             attribution: '© Google Satellite',
             maxZoom: 24
         }).addTo(map);
 
-        // Definisikan ikon marker tanaman
+        // Ikon marker tanaman
         const plantIcon = L.divIcon({
             className: 'plant-marker',
             iconSize: [14, 14],
@@ -104,14 +83,9 @@
             popupAnchor: [0, -7]
         });
 
-        // Tambahkan marker dari data GeoJSON
+        // Tambahkan marker dari GeoJSON
         const geoJsonLayer = L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
-                const marker = L.marker(latlng, {
-                    icon: plantIcon,
-                    opacity: 1
-                });
-
                 const popupContent = `
                     <div class="popup-content">
                         <div class="popup-header">ID ${feature.properties.ID}</div>
@@ -125,23 +99,19 @@
                              alt="${feature.properties.foto_name}">
                     </div>
                 `;
-
-                marker.bindPopup(popupContent, {
-                    autoPan: true,
-                    autoPanPadding: [50, 50],
-                    maxWidth: 150,
-                    minWidth: 120,
-                    className: 'smart-popup'
-                });
-
-                // Hanya buka popup langsung — biarkan Leaflet yang mengatur pan otomatis
-                marker.on('click', function() {
-                    marker.openPopup();
-                });
-
-                return marker;
+                return L.marker(latlng, { icon: plantIcon })
+                        .bindPopup(popupContent);
             }
         }).addTo(map);
+
+        // Pusatkan peta ke semua marker
+        if (geoJsonLayer.getLayers().length > 0) {
+            map.fitBounds(geoJsonLayer.getBounds(), {
+                padding: [30, 30]
+            });
+        } else {
+            map.setView([-5.2893, 105.4231], 17); // fallback jika tidak ada data
+        }
     </script>
 </body>
 </html>
