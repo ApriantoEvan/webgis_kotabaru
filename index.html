@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Geotagging Kotabaru</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <style>
         #map { height: 100vh; width: 100vw; }
+
+        .leaflet-popup {
+            will-change: transform;
+        }
 
         .leaflet-popup-content {
             max-height: 120px;
@@ -59,26 +58,37 @@
             margin-top: -7px !important;
             filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));
         }
+
+        .leaflet-control-zoom {
+            margin-right: 5px !important;
+            margin-top: 5px !important;
+        }
+
+        .leaflet-control-zoom-in,
+        .leaflet-control-zoom-out {
+            width: 20px !important;
+            height: 20px !important;
+            line-height: 20px !important;
+            font-size: 14px !important;
+        }
+
+        .leaflet-popup-close-button {
+            right: 1px !important;
+            top: 1px !important;
+            font-size: 12px !important;
+            color: #333 !important;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <!-- Data GeoJSON -->
     <script src="Semua titik.js"></script>
 
-    <!-- Script Utama -->
     <script>
-    window.onload = function() {
-        if (typeof geoJSONData === 'undefined') {
-            alert("Data geoJSON belum tersedia.");
-            return;
-        }
-
-        const map = L.map('map');
+        // Inisialisasi peta
+        const map = L.map('map').setView([-5.289894, 105.422790], 18);
 
         // Tambahkan basemap satelit Google
         L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -86,7 +96,7 @@
             maxZoom: 24
         }).addTo(map);
 
-        // Ikon custom marker
+        // Definisikan ikon marker tanaman
         const plantIcon = L.divIcon({
             className: 'plant-marker',
             iconSize: [14, 14],
@@ -97,7 +107,12 @@
         // Tambahkan marker dari data GeoJSON
         const geoJsonLayer = L.geoJSON(geoJSONData, {
             pointToLayer: function(feature, latlng) {
-                const popupContent = `
+                const marker = L.marker(latlng, {
+                    icon: plantIcon,
+                    opacity: 1
+                });
+
+                const popupContent = 
                     <div class="popup-content">
                         <div class="popup-header">ID ${feature.properties.ID}</div>
                         <div class="popup-coords">
@@ -109,22 +124,24 @@
                              onerror="this.src='https://placehold.co/120x80?text=Image'" 
                              alt="${feature.properties.foto_name}">
                     </div>
-                `;
-                return L.marker(latlng, { icon: plantIcon }).bindPopup(popupContent);
+                ;
+
+                marker.bindPopup(popupContent, {
+                    autoPan: true,
+                    autoPanPadding: [50, 50],
+                    maxWidth: 150,
+                    minWidth: 120,
+                    className: 'smart-popup'
+                });
+
+                // Hanya buka popup langsung — biarkan Leaflet yang mengatur pan otomatis
+                marker.on('click', function() {
+                    marker.openPopup();
+                });
+
+                return marker;
             }
         }).addTo(map);
-
-        // Atur tampilan awal peta
-        map.whenReady(() => {
-            const bounds = geoJsonLayer.getBounds();
-            if (bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [30, 30] });
-            } else {
-                // Fallback jika data hanya 1 titik atau error
-                map.setView([-5.2893, 105.4231], 17);
-            }
-        });
-    };
     </script>
 </body>
 </html>
