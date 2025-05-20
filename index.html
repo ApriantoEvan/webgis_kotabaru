@@ -83,35 +83,35 @@
             popupAnchor: [0, -7]
         });
 
-        // Tambahkan marker dari GeoJSON
-        const geoJsonLayer = L.geoJSON(geoJSONData, {
-            pointToLayer: function(feature, latlng) {
-                const popupContent = `
-                    <div class="popup-content">
-                        <div class="popup-header">ID ${feature.properties.ID}</div>
-                        <div class="popup-coords">
-                            ${feature.properties.lat}<br>
-                            ${feature.properties.lon}
-                        </div>
-                        <img class="popup-img" 
-                             src="${feature.properties.foto_path}" 
-                             onerror="this.src='https://placehold.co/120x80?text=Image'" 
-                             alt="${feature.properties.foto_name}">
+    const geoJsonLayer = L.geoJSON(geoJSONData, {
+         pointToLayer: function(feature, latlng) {
+            const popupContent = `
+                <div class="popup-content">
+                    <div class="popup-header">ID ${feature.properties.ID}</div>
+                    <div class="popup-coords">
+                        ${feature.properties.lat}<br>
+                        ${feature.properties.lon}
                     </div>
-                `;
-                return L.marker(latlng, { icon: plantIcon })
-                        .bindPopup(popupContent);
-            }
-        }).addTo(map);
-
-        // Pusatkan peta ke semua marker
-        if (geoJsonLayer.getLayers().length > 0) {
-            map.fitBounds(geoJsonLayer.getBounds(), {
-                padding: [30, 30]
-            });
-        } else {
-            map.setView([-5.2893, 105.4231], 17); // fallback jika tidak ada data
+                    <img class="popup-img" 
+                         src="${feature.properties.foto_path}" 
+                         onerror="this.src='https://placehold.co/120x80?text=Image'" 
+                         alt="${feature.properties.foto_name}">
+                </div>
+            `;
+            return L.marker(latlng, { icon: plantIcon }).bindPopup(popupContent);
         }
+    });
+
+    geoJsonLayer.addTo(map);
+
+    // Pastikan layer sudah ada sebelum fitBounds
+    map.whenReady(() => {
+        if (geoJsonLayer.getBounds().isValid()) {
+            map.fitBounds(geoJsonLayer.getBounds(), { padding: [30, 30] });
+        } else {
+            map.setView([-5.2893, 105.4231], 17); // fallback
+        }
+    });
     </script>
 </body>
 </html>
